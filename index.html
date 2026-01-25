@@ -179,6 +179,12 @@
 .alasan-select:focus{border-color:var(--primary)}
 .alasan-text{font-size:0.75rem;color:var(--text-light);margin-top:5px;font-style:italic}
 .btn-save-alasan{padding:4px 12px;border:none;border-radius:6px;background:var(--primary);color:white;font-size:0.7rem;cursor:pointer;margin-top:5px;transition:all 0.3s}
+.share-buttons{display:flex;gap:8px;margin-top:12px;justify-content:center}
+.btn-share{padding:8px 16px;border:none;border-radius:8px;font-size:0.8rem;font-weight:600;cursor:pointer;transition:all 0.3s;display:flex;align-items:center;gap:6px}
+.btn-share:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,0.15)}
+.btn-download{background:#4CAF50;color:white}
+.btn-whatsapp{background:#25D366;color:white}
+.flyer-canvas{position:fixed;top:-9999px;left:-9999px;}
 .btn-save-alasan:hover{background:var(--primary-dark);transform:translateY(-1px)}
 		/* Murottal Styles */
 .filter-btn{padding:8px 16px;border:2px solid var(--accent);background:var(--white);border-radius:20px;font-size:0.8rem;cursor:pointer;transition:all 0.3s}
@@ -420,10 +426,13 @@
         </div>
     </div>
 
-    <div class="toast" id="toast"></div>
-    <div class="loading" id="loading"><div class="spinner"></div><div class="loading-text" id="loadingText">Memuat...</div></div>
+<div class="toast" id="toast"></div>
+<div class="loading" id="loading"><div class="spinner"></div><div class="loading-text" id="loadingText">Memuat...</div></div>
 
-    <script>
+<!-- Canvas untuk membuat flyer -->
+<canvas id="flyerCanvas" class="flyer-canvas"></canvas>
+
+<script>
         // ============================================
         // KONFIGURASI SEMUA KELAS
         // ============================================
@@ -1775,37 +1784,50 @@ window.renderAchievementList = function() {
         '<div style="font-size:0.9rem;margin-top:5px;opacity:0.8;">dari ' + siswaUnique.length + ' siswa berprestasi</div></div>';
     
     for (var i = 0; i < achievements.length; i++) {
-        var a = achievements[i];
-        var medal = medals[i % medals.length];
-        var namaLengkap = a.siswa; // NAMA LENGKAP
-        var tgl = a.tanggal;
-        try { tgl = formatTanggal(a.tanggal); } catch(e) {}
+    var a = achievements[i];
+    var medal = medals[i % medals.length];
+    var namaLengkap = a.siswa; // NAMA LENGKAP
+    var tgl = a.tanggal;
+    try { tgl = formatTanggal(a.tanggal); } catch(e) {}
+    
+    // Buat ID unik untuk setiap item
+    var itemId = 'achievement_' + i;
+    
+    html += '<div style="background:linear-gradient(135deg,#FFFBEB,#FEF3C7);border-radius:15px;padding:18px;margin-bottom:15px;border-left:5px solid #F59E0B;box-shadow:0 4px 15px rgba(0,0,0,0.08);" data-nama="' + namaLengkap + '" data-surat="' + a.surat + '" data-tanggal="' + tgl + '" id="' + itemId + '">' +
         
-        html += '<div style="background:linear-gradient(135deg,#FFFBEB,#FEF3C7);border-radius:15px;padding:18px;margin-bottom:15px;border-left:5px solid #F59E0B;box-shadow:0 4px 15px rgba(0,0,0,0.08);">' +
-            
-                     
-            // ========== UCAPAN SELAMAT DAN DOA DENGAN NAMA LENGKAP ==========
-            '<div style="background:linear-gradient(135deg,#DCFCE7,#BBF7D0);border-radius:12px;padding:18px;border:2px dashed #22C55E;text-align:center;">' +
-                '<div style="font-size:2rem;margin-bottom:10px;">🎉</div>' +
-                '<p style="font-size:1.1rem;color:#166534;font-weight:bold;margin:0 0 10px 0;">' +
-                    'Selamat Ananda ' + namaLengkap + '!' +
-                '</p>' +
-                '<p style="font-size:0.95rem;color:#166534;margin:0 0 12px 0;">' +
-                    'yang telah menyelesaikan hafalan <strong>Surah ' + a.surat + '</strong>' +
-                '</p>' +
-                '<div style="background:rgba(255,255,255,0.5);border-radius:8px;padding:12px;margin-top:10px;">' +
-                    '<p style="font-size:0.9rem;color:#15803D;font-style:italic;line-height:1.6;margin:0;">' +
-                        '"Teruslah semangat menghafal!<br>' +
-                        'Semoga Allah menjadikanmu ahli Al-Quran."' +
-                    '</p>' +
-                '</div>' +
-                '<p style="font-size:1rem;color:#166534;margin:15px 0 0 0;font-weight:bold;">' +
-                    '📚✨ Aamiin Yaa Rabbal Aalamiin ✨📚' +
+                 
+        // ========== UCAPAN SELAMAT DAN DOA DENGAN NAMA LENGKAP ==========
+        '<div style="background:linear-gradient(135deg,#DCFCE7,#BBF7D0);border-radius:12px;padding:18px;border:2px dashed #22C55E;text-align:center;">' +
+            '<div style="font-size:2rem;margin-bottom:10px;">🎉</div>' +
+            '<p style="font-size:1.1rem;color:#166534;font-weight:bold;margin:0 0 10px 0;">' +
+                'Selamat Ananda ' + namaLengkap + '!' +
+            '</p>' +
+            '<p style="font-size:0.95rem;color:#166534;margin:0 0 12px 0;">' +
+                'yang telah menyelesaikan hafalan <strong>Surah ' + a.surat + '</strong>' +
+            '</p>' +
+            '<div style="background:rgba(255,255,255,0.5);border-radius:8px;padding:12px;margin-top:10px;">' +
+                '<p style="font-size:0.9rem;color:#15803D;font-style:italic;line-height:1.6;margin:0;">' +
+                    '"Teruslah semangat menghafal!<br>' +
+                    'Semoga Allah menjadikanmu ahli Al-Quran."' +
                 '</p>' +
             '</div>' +
-            
-        '</div>';
-    }
+            '<p style="font-size:1rem;color:#166534;margin:15px 0 0 0;font-weight:bold;">' +
+                '📚✨ Aamiin Yaa Rabbal Aalamiin ✨📚' +
+            '</p>' +
+        '</div>' +
+        
+        // ========== TOMBOL SHARE ==========
+        '<div class="share-buttons">' +
+            '<button class="btn-share btn-download" onclick="downloadFlyerById(\'' + itemId + '\')">' +
+                '<i class="fas fa-download"></i> Download Flyer' +
+            '</button>' +
+            '<button class="btn-share btn-whatsapp" onclick="shareToWhatsAppById(\'' + itemId + '\')">' +
+                '<i class="fab fa-whatsapp"></i> Share ke WA' +
+            '</button>' +
+        '</div>' +
+        
+    '</div>';
+}
     
     container.innerHTML = html;
 };
@@ -1813,6 +1835,275 @@ window.renderAchievementList = function() {
 // JALANKAN LANGSUNG
 renderAchievementList();
 console.log('✅ Nama lengkap sudah ditampilkan!');
-	</script>
+
+// ============================================
+// FLYER GENERATOR & SHARE FUNCTIONS
+// ============================================
+function createFlyerImage(nama, surat, tanggal) {
+    return new Promise((resolve) => {
+        const canvas = document.getElementById('flyerCanvas');
+        if (!canvas) {
+            console.error('Canvas tidak ditemukan!');
+            resolve(null);
+            return;
+        }
+        
+        const ctx = canvas.getContext('2d');
+        
+        // Set ukuran canvas - lebih pendek
+        canvas.width = 1080;
+        canvas.height = 1600;
+        
+        // Background gradient
+        const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+        gradient.addColorStop(0, '#10B981');
+        gradient.addColorStop(1, '#059669');
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        // Decorative circles - posisi disesuaikan
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
+        ctx.beginPath();
+        ctx.arc(150, 100, 180, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(930, 1650, 200, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // White card background - lebih rapat ke atas
+        ctx.fillStyle = '#FFFFFF';
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.2)';
+        ctx.shadowBlur = 30;
+        ctx.shadowOffsetY = 10;
+        drawRoundRect(ctx, 80, 90, 920, 1260, 30, true);
+        ctx.shadowColor = 'transparent';
+        
+        // Trophy icon
+        ctx.fillStyle = '#FFD700';
+        ctx.font = 'bold 160px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText('🏆', 540, 300);
+        
+        // Title
+        ctx.fillStyle = '#059669';
+        ctx.font = 'bold 68px Arial';
+        ctx.fillText('PRESTASI HAFALAN', 540, 420);
+        
+        // Divider line
+        ctx.strokeStyle = '#10B981';
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.moveTo(200, 470);
+        ctx.lineTo(880, 470);
+        ctx.stroke();
+        
+        // Celebration emoji
+        ctx.font = '75px Arial';
+        ctx.fillText('🎉', 540, 580);
+        
+        // Selamat text
+        ctx.fillStyle = '#1F2937';
+        ctx.font = 'bold 50px Arial';
+        ctx.fillText('Selamat kepada', 540, 680);
+        
+        // Nama siswa dengan font cursive/script yang menarik
+        ctx.fillStyle = '#059669';
+        ctx.font = 'bold italic 75px "Brush Script MT", "Segoe Script", cursive';
+        
+        // Word wrap untuk nama panjang
+        const maxWidth = 800;
+        const words = nama.split(' ');
+        let line = '';
+        let y = 770;
+        const lineHeight = 85;
+        
+        for (let i = 0; i < words.length; i++) {
+            const testLine = line + words[i] + ' ';
+            const metrics = ctx.measureText(testLine);
+            
+            if (metrics.width > maxWidth && i > 0) {
+                ctx.fillText(line.trim(), 540, y);
+                line = words[i] + ' ';
+                y += lineHeight;
+            } else {
+                line = testLine;
+            }
+        }
+        ctx.fillText(line.trim(), 540, y);
+        
+        // Achievement text
+        ctx.fillStyle = '#1F2937';
+        ctx.font = '42px Arial';
+        ctx.fillText('Telah menyelesaikan hafalan', 540, y + 110);
+        
+        // Surah name
+        ctx.fillStyle = '#DC2626';
+        ctx.font = 'bold 65px Arial';
+        ctx.fillText('QS. ' + surat, 540, y + 200);
+        
+        // Date
+        ctx.fillStyle = '#6B7280';
+        ctx.font = '36px Arial';
+        ctx.fillText(tanggal, 540, y + 265);
+        
+        // Doa section - posisi diperbaiki
+        const doaY = y + 330;
+        
+        ctx.fillStyle = '#F0FDF4';
+        drawRoundRect(ctx, 120, doaY, 840, 200, 20, true);
+        
+        ctx.strokeStyle = '#10B981';
+        ctx.lineWidth = 3;
+        drawRoundRect(ctx, 120, doaY, 840, 200, 20, false);
+        
+        ctx.fillStyle = '#059669';
+        ctx.font = 'italic 33px Arial';
+        ctx.fillText('Semoga Allah menjadikanmu', 540, doaY + 70);
+        ctx.fillText('ahli Al-Qur\'an', 540, doaY + 115);
+        
+        // Aamiin - tidak tertutup, jarak seimbang
+        ctx.fillStyle = '#059669';
+        ctx.font = 'bold 38px Arial';
+        ctx.fillText('📖 Aamiin Yaa Rabbal Aalamiin 📖', 540, doaY + 170);
+        
+        // Footer - posisi disesuaikan
+        ctx.fillStyle = '#FFFFFF';
+        ctx.font = 'bold 42px Arial';
+        ctx.fillText('MIS HIDAYATUL MUBTADIIN', 540, 1450);
+        ctx.font = '35px Arial';
+        ctx.fillText('Undaan Kidul, Kudus', 540, 1500);
+        
+        // Convert to blob
+        canvas.toBlob((blob) => {
+            resolve(blob);
+        }, 'image/png');
+    });
+}
+
+// Helper function untuk rounded rectangle
+function drawRoundRect(ctx, x, y, width, height, radius, fill) {
+    ctx.beginPath();
+    ctx.moveTo(x + radius, y);
+    ctx.lineTo(x + width - radius, y);
+    ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+    ctx.lineTo(x + width, y + height - radius);
+    ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+    ctx.lineTo(x + radius, y + height);
+    ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+    ctx.lineTo(x, y + radius);
+    ctx.quadraticCurveTo(x, y, x + radius, y);
+    ctx.closePath();
+    
+    if (fill) {
+        ctx.fill();
+    } else {
+        ctx.stroke();
+    }
+}
+
+async function downloadFlyer(nama, surat, tanggal) {
+    console.log('Download flyer:', nama, surat, tanggal);
+    showLoading(true, 'Membuat flyer...');
+    
+    try {
+        const blob = await createFlyerImage(nama, surat, tanggal);
+        
+        if (!blob) {
+            throw new Error('Gagal membuat gambar');
+        }
+        
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'Prestasi_' + nama.replace(/\s+/g, '_') + '_' + surat + '.png';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        
+        showToast('Flyer berhasil didownload! 📥', 'success');
+    } catch (err) {
+        console.error('Error download:', err);
+        showToast('Gagal membuat flyer: ' + err.message, 'error');
+    }
+    
+    showLoading(false);
+}
+
+async function shareToWhatsApp(nama, surat, tanggal) {
+    console.log('Share WA:', nama, surat, tanggal);
+    showLoading(true, 'Menyiapkan flyer...');
+    
+    try {
+        const blob = await createFlyerImage(nama, surat, tanggal);
+        
+        if (!blob) {
+            throw new Error('Gagal membuat gambar');
+        }
+        
+        // Cek apakah browser support Web Share API dengan file
+        if (navigator.canShare && navigator.canShare({ files: [new File([blob], 'flyer.png')] })) {
+            const file = new File([blob], 'Prestasi_' + nama.replace(/\s+/g, '_') + '.png', { type: 'image/png' });
+            
+            await navigator.share({
+                title: 'Prestasi Hafalan',
+                text: 'Alhamdulillah, ' + nama + ' telah menyelesaikan hafalan QS. ' + surat + '! 🎉📖\n\nMIS Hidayatul Mubtadiin - Undaan Kidul Kudus',
+                files: [file]
+            });
+            
+            showToast('Berhasil share! 🎉', 'success');
+        } else {
+            // Fallback: Download dulu, lalu buka WA
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'Prestasi_' + nama.replace(/\s+/g, '_') + '.png';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            // Buka WhatsApp dengan pesan
+            const message = encodeURIComponent('Alhamdulillah, ' + nama + ' telah menyelesaikan hafalan QS. ' + surat + '! 🎉📖\n\nMIS Hidayatul Mubtadiin - Undaan Kidul Kudus');
+            window.open('https://wa.me/?text=' + message, '_blank');
+            
+            showToast('Flyer didownload! Silakan attach ke WhatsApp 📎', 'success');
+        }
+    } catch (err) {
+        console.error('Error share:', err);
+        showToast('Gagal share flyer: ' + err.message, 'error');
+    }
+    
+    showLoading(false);
+}
+
+async function downloadFlyerById(itemId) {
+    const element = document.getElementById(itemId);
+    if (!element) {
+        showToast('Data tidak ditemukan', 'error');
+        return;
+    }
+    
+    const nama = element.getAttribute('data-nama');
+    const surat = element.getAttribute('data-surat');
+    const tanggal = element.getAttribute('data-tanggal');
+    
+    await downloadFlyer(nama, surat, tanggal);
+}
+
+async function shareToWhatsAppById(itemId) {
+    const element = document.getElementById(itemId);
+    if (!element) {
+        showToast('Data tidak ditemukan', 'error');
+        return;
+    }
+    
+    const nama = element.getAttribute('data-nama');
+    const surat = element.getAttribute('data-surat');
+    const tanggal = element.getAttribute('data-tanggal');
+    
+    await shareToWhatsApp(nama, surat, tanggal);
+}
+    </script>
 </body>
 </html>
