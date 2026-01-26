@@ -1475,9 +1475,16 @@ function renderAchievementList() {
                     <!-- Yang Tidak Setor -->
                     ${siswaTidakSetor.length > 0 ? `
                     <div>
-                        <h5 style="font-size:0.85rem;color:var(--danger);margin-bottom:10px;display:flex;align-items:center;gap:6px;">
-                            <i class="fas fa-times-circle"></i> Tidak Setor (${siswaTidakSetor.length})
-                        </h5>
+                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+    <h5 style="font-size:0.85rem;color:var(--danger);margin:0;display:flex;align-items:center;gap:6px;">
+        <i class="fas fa-times-circle"></i> Tidak Setor (${siswaTidakSetor.length})
+    </h5>
+    <button class="btn-share btn-whatsapp teacher-only" 
+            style="padding:6px 14px;font-size:0.75rem;" 
+            onclick="shareAbsenToWA('${tanggal}', ${JSON.stringify(siswaTidakSetor).replace(/"/g, '&quot;')})">
+        <i class="fab fa-whatsapp"></i> Share
+    </button>
+</div>
                         ${siswaTidakSetor.map(nama => {
                             const key = tanggal + '_' + nama;
                             const keyClean = key.replace(/[\/\s]/g, '_');
@@ -1560,6 +1567,7 @@ function saveAlasanTidakSetor(tanggal, nama, alasan) {
     // Refresh tampilan
     renderRiwayat();
 }
+
         async function hapusItem(row) {
             if (!confirm('Hapus?')) return;
             showLoading(true, 'Menghapus...');
@@ -1584,7 +1592,92 @@ function saveAlasanTidakSetor(tanggal, nama, alasan) {
             } catch (err) { showToast('Gagal', 'error'); }
             showLoading(false);
         }
+// ============================================
+// SHARE DAFTAR TIDAK SETOR KE WHATSAPP
+// ============================================
+function shareAbsenToWA(tanggal, siswaTidakSetor) {
+    console.log('Share absen:', tanggal, siswaTidakSetor);
+    
+    if (!siswaTidakSetor || siswaTidakSetor.length === 0) {
+        showToast('Tidak ada siswa yang tidak setor', 'error');
+        return;
+    }
+    
+    // Format tanggal
+    let tglFormatted = tanggal;
+    try {
+        tglFormatted = formatTanggal(tanggal);
+    } catch(e) {
+        console.error('Error format tanggal:', e);
+    }
+    
+    // Header pesan
+    let message = '*📋 REKAPITULASI TAHFIDZ*\n';
+    message += `Kelas ${currentKelas}\n`;
+    message += `${tglFormatted}\n`;
+    message += `MIS Hidayatul Mubtadiin\n\n`;
+    
+    message += `*❌ SISWA YANG TIDAK SETOR (${siswaTidakSetor.length}):*\n\n`;
+    
+    // Daftar siswa dengan alasan jika ada
+    siswaTidakSetor.forEach((nama, index) => {
+        const key = `${tanggal}_${nama}`;
+        const alasan = alasanTidakSetor[key];
+        
+        message += `${index + 1}. ${nama}`;
+        if (alasan) {
+            message += ` _(${alasan})_`;
+        }
+        message += '\n';
+    });
+    
+    message += '\n';
+    message += `*📊 Total: ${siswaTidakSetor.length} siswa*\n\n`;
+    
+    // Statistik alasan
+    const alasanCount = {};
+    siswaTidakSetor.forEach(nama => {
+        const key = `${tanggal}_${nama}`;
+        const alasan = alasanTidakSetor[key] || 'Belum ada keterangan';
+        alasanCount[alasan] = (alasanCount[alasan] || 0) + 1;
+    });
+    
+    if (Object.keys(alasanCount).length > 0) {
+        message += '*📝 Rincian Alasan:*\n';
+        Object.keys(alasanCount).forEach(alasan => {
+            const icon = getAlasanIcon(alasan);
+            message += `${icon} ${alasan}: ${alasanCount[alasan]} siswa\n`;
+        });
+        message += '\n';
+    }
+    
+    message += '_Catatan: Mohon orang tua memastikan anak membawa buku tahfidz dan siap menyetor besok pertemuan yang akan datang._\n\n';
+    message += '📚 *Semangat Menghafal Al-Qur\'an!*';
+    
+    // Encode dan buka WA
+    const encodedMessage = encodeURIComponent(message);
+    const waUrl = `https://wa.me/?text=${encodedMessage}`;
+    
+    // Buka di tab baru
+    window.open(waUrl, '_blank');
+    
+    showToast('Pesan disiapkan! Pilih group kelas di WhatsApp 📱', 'success');
+}
 
+// Helper function untuk icon alasan
+function getAlasanIcon(alasan) {
+    const icons = {
+        'Sakit': '😷',
+        'Izin': '📄',
+        'Alfa': '❌',
+        'Belum Siap': '⏰',
+        'Lupa Bawa Buku': '📚',
+        'Kegiatan Lain': '🏃',
+        'Waktu Habis': '⏱️',
+        'Belum ada keterangan': '❓'
+    };
+    return icons[alasan] || '•';
+}
         // ============================================
         // STATISTIK
         // ============================================
@@ -1908,7 +2001,7 @@ function createFlyerImage(nama, surat, tanggal) {
         
         // Nama siswa dengan font cursive/script yang menarik
         ctx.fillStyle = '#059669';
-        ctx.font = 'bold italic 65px Bradley Hand';
+        ctx.font = 'bold italic 55px Bradley Hand';
         
         // Word wrap untuk nama panjang
         const maxWidth = 800;
