@@ -455,6 +455,7 @@
                     "Rijal Fadlurrohman Aldzaki", "Sumayya Sirril Chubba", "Zidan Nafi' Ilmi"
                 ],
                 surat: [
+					{ nomor: 36, nama: "Yasin", ayat: 83 }, { nomor: 56, nama: "Al-Waqi'ah", ayat: 96 }, { nomor: 67, nama: "Al-Mulk", ayat: 30 },
 					{ nomor: 78, nama: "An-Naba'", ayat: 40 }, { nomor: 79, nama: "An-Nazi'at", ayat: 46 },
                     { nomor: 80, nama: "'Abasa", ayat: 42 }, { nomor: 81, nama: "At-Takwir", ayat: 29 },
                     { nomor: 82, nama: "Al-Infithar", ayat: 19 }, { nomor: 83, nama: "Al-Muthaffifin", ayat: 36 },
@@ -1091,7 +1092,8 @@ async function refreshPrestasi() {
 
         function resetForm() {
             document.getElementById('selectSiswa').value = '';
-            document.getElementById('selectSurat').value = '';
+            // JANGAN RESET SURAT - biarkan tetap terpilih
+            // document.getElementById('selectSurat').value = '';
             document.getElementById('ayatDari').value = '';
             document.getElementById('ayatSampai').value = '';
             document.querySelectorAll('.predikat-item').forEach(x => x.classList.remove('selected'));
@@ -1176,8 +1178,10 @@ function calculateAchievements() {
     console.log('✅ Total prestasi ditemukan:', achievements.length);
     return achievements;
 }
+// FUNGSI LAMA - DIKOMENTARI KARENA SUDAH DIGANTI DENGAN YANG BARU (GROUPED BY DATE)
+/*
 function renderAchievementList() {
-    console.log('========== RENDER ACHIEVEMENT ==========');
+    console.log('========== RENDER ACHIEVEMENT (OLD) ==========');
     
     const container = document.getElementById('achievementList');
     
@@ -1269,6 +1273,8 @@ function renderAchievementList() {
     console.log('✅ PRESTASI BERHASIL DI-RENDER!');
     console.log('========================================');
 }
+*/
+// GUNAKAN FUNGSI BARU YANG ADA DI WINDOW.renderAchievementList (DENGAN GROUPING BY DATE)
         // ============================================
         // REKAMAN
         // ============================================
@@ -1488,7 +1494,13 @@ function renderAchievementList() {
                         ${siswaTidakSetor.map(nama => {
                             const key = tanggal + '_' + nama;
                             const keyClean = key.replace(/[\/\s]/g, '_');
-                            const alasan = alasanTidakSetor[key] || '';
+                            // Default alasan adalah "Belum Siap" jika belum ada alasan yang disimpan
+                            let alasan = alasanTidakSetor[key];
+                            if (!alasan) {
+                                alasan = 'Belum Siap';
+                                // Auto-save default alasan
+                                alasanTidakSetor[key] = alasan;
+                            }
                             
 return '<div class="history-item" style="background:#fef2f2;border-left:4px solid var(--danger);opacity:0.85;">' +
     '<div style="padding:12px;">' +
@@ -1509,20 +1521,19 @@ return '<div class="history-item" style="background:#fef2f2;border-left:4px soli
         '<!-- Dropdown untuk Guru -->' +
         '<div class="teacher-only">' +
             '<select class="alasan-select" onchange="saveAlasanTidakSetor(\'' + tanggal + '\', \'' + nama + '\', this.value)">' +
-                '<option value="">-- Pilih Alasan Tidak Setor --</option>' +
+                '<option value="Belum Siap"' + (alasan === 'Belum Siap' ? ' selected' : '') + '>⏰ Belum Siap</option>' +
                 '<option value="Sakit"' + (alasan === 'Sakit' ? ' selected' : '') + '>😷 Sakit</option>' +
                 '<option value="Izin"' + (alasan === 'Izin' ? ' selected' : '') + '>📝 Izin</option>' +
                 '<option value="Alfa"' + (alasan === 'Alfa' ? ' selected' : '') + '>❌ Alfa (Tanpa Keterangan)</option>' +
-                '<option value="Belum Siap"' + (alasan === 'Belum Siap' ? ' selected' : '') + '>⏰ Belum Siap</option>' +
                 '<option value="Lupa Bawa Buku"' + (alasan === 'Lupa Bawa Buku' ? ' selected' : '') + '>📚 Lupa Bawa Buku</option>' +
                 '<option value="Kegiatan Lain"' + (alasan === 'Kegiatan Lain' ? ' selected' : '') + '>🏃 Kegiatan Lain</option>' +
-				'<option value="Waktu Habis"' + (alasan === 'Waktu Habis' ? ' selected' : '') + '>🏃 Waktu Habis</option>' +
+				'<option value="Waktu Habis"' + (alasan === 'Waktu Habis' ? ' selected' : '') + '>⏰ Waktu Habis</option>' +
             '</select>' +
-            (alasan ? '<p class="alasan-text"><i class="fas fa-info-circle"></i> ' + alasan + '</p>' : '') +
+            '<p class="alasan-text"><i class="fas fa-info-circle"></i> ' + alasan + '</p>' +
         '</div>' +
         
         '<!-- Tampilan untuk Murid (Read-only) -->' +
-        (alasan ? '<div class="student-view"><p class="alasan-text" style="background:rgba(255,215,0,0.15);padding:8px 12px;border-radius:8px;margin-top:8px;border-left:3px solid var(--warning);"><i class="fas fa-info-circle"></i> <strong>Alasan:</strong> ' + alasan + '</p></div>' : '') +
+        '<div class="student-view"><p class="alasan-text" style="background:rgba(255,215,0,0.15);padding:8px 12px;border-radius:8px;margin-top:8px;border-left:3px solid var(--warning);"><i class="fas fa-info-circle"></i> <strong>Alasan:</strong> ' + alasan + '</p></div>' +
     '</div>' +
 '</div>';
                         }).join('')}
@@ -1534,6 +1545,9 @@ return '<div class="history-item" style="background:#fef2f2;border-left:4px soli
     });
     
     c.innerHTML = html;
+    
+    // Simpan default alasan yang baru dibuat ke localStorage
+    localStorage.setItem('alasan_tidak_setor_' + currentKelas, JSON.stringify(alasanTidakSetor));
 }
 // ============================================
 // TOGGLE DATE SECTION
@@ -1790,34 +1804,79 @@ function showToast(m, t = '') {
             document.getElementById('loading').classList.toggle('show', s);
             document.getElementById('loadingText').textContent = t;
         }
-    // OVERRIDE FUNGSI renderAchievementList DENGAN NAMA LENGKAP
-window.renderAchievementList = function() {
+    // FUNGSI BARU renderAchievementList DENGAN GROUPING BY DATE
+function renderAchievementList() {
     var container = document.getElementById('achievementList');
-    if (!container) return;
+    if (!container) {
+        console.error('Container achievementList tidak ditemukan!');
+        return;
+    }
+    
+    console.log('🎯 Mulai render prestasi (GROUPED BY DATE)...');
     
     // Hitung prestasi
     var achievements = [];
     var suratConfig = currentConfig.surat;
     var setoranPerSiswa = {};
     
-    for (var i = 0; i < riwayatData.length; i++) {
-        var s = riwayatData[i];
+    // PENTING: Urutkan riwayatData berdasarkan tanggal terlebih dahulu (dari lama ke baru)
+    var sortedRiwayat = riwayatData.slice().sort(function(a, b) {
+        var partsA = a.tanggal.split('/');
+        var partsB = b.tanggal.split('/');
+        var dateA = new Date(parseInt(partsA[2]), parseInt(partsA[1]) - 1, parseInt(partsA[0]));
+        var dateB = new Date(parseInt(partsB[2]), parseInt(partsB[1]) - 1, parseInt(partsB[0]));
+        return dateA - dateB; // Lama ke baru (sehingga yang terakhir adalah yang terbaru)
+    });
+    
+    console.log('📊 Total setoran:', sortedRiwayat.length);
+    
+    for (var i = 0; i < sortedRiwayat.length; i++) {
+        var s = sortedRiwayat[i];
         var siswa = s.siswa;
         var surat = s.surat;
         
         if (!siswa || !surat) continue;
         if (!setoranPerSiswa[siswa]) setoranPerSiswa[siswa] = {};
-        if (!setoranPerSiswa[siswa][surat]) setoranPerSiswa[siswa][surat] = { ayat: [], tanggal: s.tanggal };
+        if (!setoranPerSiswa[siswa][surat]) {
+            setoranPerSiswa[siswa][surat] = { 
+                ayat: [], 
+                tanggal: s.tanggal,
+                tanggalSelesai: null  // Tanggal saat surat benar-benar selesai
+            };
+        }
         
         var dari = parseInt(s.ayatDari) || 1;
         var sampai = parseInt(s.ayatSampai) || 1;
+        
+        // Hitung jumlah ayat SEBELUM menambah ayat baru
+        var jumlahSebelum = setoranPerSiswa[siswa][surat].ayat.length;
         
         for (var a = dari; a <= sampai; a++) {
             if (setoranPerSiswa[siswa][surat].ayat.indexOf(a) === -1) {
                 setoranPerSiswa[siswa][surat].ayat.push(a);
             }
         }
+        
+        // Update tanggal terakhir setoran
         setoranPerSiswa[siswa][surat].tanggal = s.tanggal;
+        
+        // CEK: Apakah surat baru saja selesai di setoran ini?
+        var jumlahSesudah = setoranPerSiswa[siswa][surat].ayat.length;
+        
+        // Cari total ayat surat ini
+        var totalAyatSurat = 0;
+        for (var k = 0; k < suratConfig.length; k++) {
+            if (suratConfig[k].nama === surat) {
+                totalAyatSurat = suratConfig[k].ayat;
+                break;
+            }
+        }
+        
+        // Jika baru saja mencapai jumlah total ayat, simpan tanggal penyelesaian
+        if (totalAyatSurat > 0 && jumlahSebelum < totalAyatSurat && jumlahSesudah >= totalAyatSurat) {
+            setoranPerSiswa[siswa][surat].tanggalSelesai = s.tanggal;
+            console.log('🎉 ' + siswa + ' menyelesaikan ' + surat + ' pada ' + s.tanggal);
+        }
     }
     
     // Cek yang sudah selesai
@@ -1838,12 +1897,18 @@ window.renderAchievementList = function() {
             }
             
             if (suratInfo && setoranPerSiswa[siswa][namaSurat].ayat.length >= suratInfo.ayat) {
+                // Gunakan tanggalSelesai jika ada, jika tidak gunakan tanggal terakhir
+                var tanggalPrestasi = setoranPerSiswa[siswa][namaSurat].tanggalSelesai || 
+                                      setoranPerSiswa[siswa][namaSurat].tanggal;
+                
                 achievements.push({
                     siswa: siswa,
                     surat: namaSurat,
                     totalAyat: suratInfo.ayat,
-                    tanggal: setoranPerSiswa[siswa][namaSurat].tanggal
+                    tanggal: tanggalPrestasi
                 });
+                
+                console.log('✅ Prestasi: ' + siswa + ' - ' + namaSurat + ' (' + tanggalPrestasi + ')');
             }
         }
     }
@@ -1857,12 +1922,34 @@ window.renderAchievementList = function() {
         return;
     }
     
+    console.log('📊 Total prestasi ditemukan:', achievements.length);
+    console.log('📋 Data prestasi:', achievements);
+    
     // SORT PRESTASI DARI TERBARU (berdasarkan tanggal)
     achievements.sort(function(a, b) {
-        var dateA = new Date(a.tanggal.split('/').reverse().join('-'));
-        var dateB = new Date(b.tanggal.split('/').reverse().join('-'));
+        // Parse tanggal dengan format DD/MM/YYYY
+        var partsA = a.tanggal.split('/');
+        var partsB = b.tanggal.split('/');
+        
+        // Buat Date object (bulan dimulai dari 0, jadi kurangi 1)
+        var dateA = new Date(parseInt(partsA[2]), parseInt(partsA[1]) - 1, parseInt(partsA[0]));
+        var dateB = new Date(parseInt(partsB[2]), parseInt(partsB[1]) - 1, parseInt(partsB[0]));
+        
+        console.log('Comparing:', a.tanggal, '→', dateA, 'vs', b.tanggal, '→', dateB);
+        
         return dateB - dateA; // Terbaru dulu
     });
+	
+	// GROUP BY DATE - Kelompokkan prestasi berdasarkan tanggal
+	var groupedByDate = {};
+	for (var i = 0; i < achievements.length; i++) {
+	    var achievement = achievements[i];
+	    var tanggal = achievement.tanggal;
+	    if (!groupedByDate[tanggal]) {
+	        groupedByDate[tanggal] = [];
+	    }
+	    groupedByDate[tanggal].push(achievement);
+	}
 	
 	// Build HTML dengan UCAPAN SELAMAT
     var medals = ['🥇', '🥈', '🥉', '🏅', '⭐', '🌟'];
@@ -1876,58 +1963,460 @@ window.renderAchievementList = function() {
         '<div style="font-size:1.6rem;font-weight:bold;">' + achievements.length + ' Prestasi</div>' +
         '<div style="font-size:0.9rem;margin-top:5px;opacity:0.8;">dari ' + siswaUnique.length + ' siswa berprestasi</div></div>';
     
-    for (var i = 0; i < achievements.length; i++) {
-    var a = achievements[i];
-    var medal = medals[i % medals.length];
-    var namaLengkap = a.siswa; // NAMA LENGKAP
-    var tgl = a.tanggal;
-    try { tgl = formatTanggal(a.tanggal); } catch(e) {}
-    
-    // Buat ID unik untuk setiap item
-    var itemId = 'achievement_' + i;
-    
-    html += '<div style="background:linear-gradient(135deg,#FFFBEB,#FEF3C7);border-radius:15px;padding:18px;margin-bottom:15px;border-left:5px solid #F59E0B;box-shadow:0 4px 15px rgba(0,0,0,0.08);" data-nama="' + namaLengkap + '" data-surat="' + a.surat + '" data-tanggal="' + tgl + '" id="' + itemId + '">' +
+    // Iterasi per tanggal
+    var sortedDates = Object.keys(groupedByDate).sort(function(a, b) {
+        // Parse tanggal dengan format DD/MM/YYYY
+        var partsA = a.split('/');
+        var partsB = b.split('/');
         
-                 
-        // ========== UCAPAN SELAMAT DAN DOA DENGAN NAMA LENGKAP ==========
-        '<div style="background:linear-gradient(135deg,#DCFCE7,#BBF7D0);border-radius:12px;padding:18px;border:2px dashed #22C55E;text-align:center;">' +
-            '<div style="font-size:2rem;margin-bottom:10px;">🎉</div>' +
-            '<p style="font-size:1.1rem;color:#166534;font-weight:bold;margin:0 0 10px 0;">' +
-                'Selamat Ananda ' + namaLengkap + '!' +
-            '</p>' +
-            '<p style="font-size:0.95rem;color:#166534;margin:0 0 12px 0;">' +
-                'yang telah menyelesaikan hafalan <strong>Surah ' + a.surat + '</strong>' +
-            '</p>' +
-            '<div style="background:rgba(255,255,255,0.5);border-radius:8px;padding:12px;margin-top:10px;">' +
-                '<p style="font-size:0.9rem;color:#15803D;font-style:italic;line-height:1.6;margin:0;">' +
-                    '"Teruslah semangat menghafal!<br>' +
-                    'Semoga Allah menjadikanmu ahli Al-Quran."' +
+        // Buat Date object (bulan dimulai dari 0, jadi kurangi 1)
+        var dateA = new Date(parseInt(partsA[2]), parseInt(partsA[1]) - 1, parseInt(partsA[0]));
+        var dateB = new Date(parseInt(partsB[2]), parseInt(partsB[1]) - 1, parseInt(partsB[0]));
+        
+        return dateB - dateA; // Terbaru dulu
+    });
+    
+    console.log('📅 Tanggal yang akan ditampilkan (urut terbaru):', sortedDates);
+    
+    for (var d = 0; d < sortedDates.length; d++) {
+        var tanggal = sortedDates[d];
+        var prestasiHariIni = groupedByDate[tanggal];
+        var dateId = 'date_' + tanggal.replace(/\//g, '_');
+        var tglFormatted = tanggal;
+        try { tglFormatted = formatTanggal(tanggal); } catch(e) {}
+        
+        // Container untuk satu hari
+        html += '<div class="date-achievement-group" style="background:linear-gradient(135deg,#FFFBEB,#FEF3C7);border-radius:15px;padding:18px;margin-bottom:20px;border-left:5px solid #F59E0B;box-shadow:0 4px 15px rgba(0,0,0,0.08);" id="' + dateId + '" data-tanggal="' + tanggal + '">';
+        
+        // Header tanggal
+        html += '<div style="background:linear-gradient(135deg,#F59E0B,#D97706);color:white;padding:12px 15px;border-radius:10px;margin-bottom:15px;text-align:center;">' +
+            '<div style="font-size:1.1rem;font-weight:bold;"><i class="fas fa-calendar-day"></i> ' + tglFormatted + '</div>' +
+            '<div style="font-size:0.85rem;margin-top:3px;opacity:0.9;">' + prestasiHariIni.length + ' Pencapaian Hari Ini</div>' +
+        '</div>';
+        
+        // Daftar prestasi di tanggal ini
+        for (var i = 0; i < prestasiHariIni.length; i++) {
+            var a = prestasiHariIni[i];
+            var medal = medals[i % medals.length];
+            var namaLengkap = a.siswa;
+            
+            html += '<div style="background:linear-gradient(135deg,#DCFCE7,#BBF7D0);border-radius:12px;padding:18px;border:2px dashed #22C55E;text-align:center;margin-bottom:' + (i < prestasiHariIni.length - 1 ? '15px' : '0') + ';">' +
+                '<div style="font-size:2rem;margin-bottom:10px;">' + medal + '</div>' +
+                '<p style="font-size:1.1rem;color:#166534;font-weight:bold;margin:0 0 10px 0;">' +
+                    'Selamat Ananda ' + namaLengkap + '!' +
                 '</p>' +
-            '</div>' +
-            '<p style="font-size:1rem;color:#166534;margin:15px 0 0 0;font-weight:bold;">' +
-                '📚✨ Aamiin Yaa Rabbal Aalamiin ✨📚' +
-            '</p>' +
-        '</div>' +
+                '<p style="font-size:0.95rem;color:#166534;margin:0 0 12px 0;">' +
+                    'yang telah menyelesaikan hafalan <strong>Surah ' + a.surat + '</strong>' +
+                '</p>' +
+                '<div style="background:rgba(255,255,255,0.5);border-radius:8px;padding:12px;margin-top:10px;">' +
+                    '<p style="font-size:0.9rem;color:#15803D;font-style:italic;line-height:1.6;margin:0;">' +
+                        '"Teruslah semangat menghafal!<br>' +
+                        'Semoga Allah menjadikanmu ahli Al-Quran."' +
+                    '</p>' +
+                '</div>' +
+                '<p style="font-size:1rem;color:#166534;margin:15px 0 0 0;font-weight:bold;">' +
+                    '📚✨ Aamiin Yaa Rabbal Aalamiin ✨📚' +
+                '</p>' +
+            '</div>';
+        }
         
-        // ========== TOMBOL SHARE ==========
-        '<div class="share-buttons">' +
-            '<button class="btn-share btn-download" onclick="downloadFlyerById(\'' + itemId + '\')">' +
+        // Tombol share untuk seluruh prestasi di tanggal ini
+        html += '<div class="share-buttons" style="margin-top:15px;">' +
+            '<button class="btn-share btn-download" onclick="downloadFlyerByDate(\'' + dateId + '\')">' +
                 '<i class="fas fa-download"></i> Download Flyer' +
             '</button>' +
-            '<button class="btn-share btn-whatsapp" onclick="shareToWhatsAppById(\'' + itemId + '\')">' +
+            '<button class="btn-share btn-whatsapp" onclick="shareToWhatsAppByDate(\'' + dateId + '\')">' +
                 '<i class="fab fa-whatsapp"></i> Share ke WA' +
             '</button>' +
-        '</div>' +
+        '</div>';
         
-    '</div>';
-}
+        html += '</div>'; // Close date-achievement-group
+    }
     
     container.innerHTML = html;
-};
+}
 
 // JALANKAN LANGSUNG
 renderAchievementList();
-console.log('✅ Nama lengkap sudah ditampilkan!');
+console.log('✅ Fungsi renderAchievementList (grouped by date) sudah siap!');
+
+// ============================================
+// FLYER GENERATOR & SHARE FUNCTIONS - MULTI PRESTASI
+// ============================================
+
+// Fungsi untuk membuat flyer dengan multiple prestasi (untuk satu hari)
+function createMultiFlyerImage(prestasiList, tanggalFormatted) {
+    return new Promise((resolve) => {
+        const canvas = document.getElementById('flyerCanvas');
+        if (!canvas) {
+            console.error('Canvas tidak ditemukan!');
+            resolve(null);
+            return;
+        }
+        
+        const ctx = canvas.getContext('2d');
+        
+        // Hitung tinggi canvas berdasarkan jumlah prestasi
+        const headerHeight = 350;
+        const footerHeight = 150;
+        const itemHeight = 280; // Tinggi per prestasi
+        const itemSpacing = 30; // Jarak antar prestasi
+        const totalItemsHeight = (prestasiList.length * itemHeight) + ((prestasiList.length - 1) * itemSpacing);
+        
+        // Set ukuran canvas
+        canvas.width = 1080;
+        canvas.height = headerHeight + totalItemsHeight + footerHeight + 100;
+        
+        // Background gradient
+        const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+        gradient.addColorStop(0, '#10B981');
+        gradient.addColorStop(1, '#059669');
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        // Decorative circles
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
+        ctx.beginPath();
+        ctx.arc(150, 100, 180, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(930, canvas.height - 150, 200, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // White card background
+        ctx.fillStyle = '#FFFFFF';
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.2)';
+        ctx.shadowBlur = 30;
+        ctx.shadowOffsetY = 10;
+        drawRoundRect(ctx, 60, 60, canvas.width - 120, canvas.height - 120, 30, true);
+        ctx.shadowBlur = 0;
+        ctx.shadowOffsetY = 0;
+        
+        let yPos = 120;
+        
+        // Header - Emoji Trophy
+        ctx.font = 'bold 140px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText('🏆', canvas.width / 2, yPos);
+        yPos += 100;
+        
+        // Title
+        ctx.font = 'bold 56px Arial';
+        ctx.fillStyle = '#059669';
+        ctx.fillText('PRESTASI HAFALAN', canvas.width / 2, yPos);
+        yPos += 70;
+        
+        // Tanggal
+        ctx.font = 'bold 38px Arial';
+        ctx.fillStyle = '#10B981';
+        ctx.fillText(tanggalFormatted, canvas.width / 2, yPos);
+        yPos += 80;
+        
+        // Daftar Prestasi
+        const medals = ['🥇', '🥈', '🥉', '🏅', '⭐', '🌟'];
+        
+        for (let i = 0; i < prestasiList.length; i++) {
+            const prestasi = prestasiList[i];
+            const medal = medals[i % medals.length];
+            
+            // Box untuk setiap prestasi
+            ctx.fillStyle = '#F0FDF4';
+            ctx.strokeStyle = '#22C55E';
+            ctx.lineWidth = 4;
+            drawRoundRect(ctx, 120, yPos, canvas.width - 240, itemHeight - 20, 20, true);
+            drawRoundRect(ctx, 120, yPos, canvas.width - 240, itemHeight - 20, 20, false);
+            
+            // Medal
+            ctx.font = 'bold 60px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText(medal, canvas.width / 2, yPos + 70);
+            
+            // Nama siswa
+            ctx.font = 'bold 42px Arial';
+            ctx.fillStyle = '#166534';
+            ctx.fillText(prestasi.siswa, canvas.width / 2, yPos + 130);
+            
+            // Surat
+            ctx.font = '36px Arial';
+            ctx.fillStyle = '#15803D';
+            ctx.fillText('Surah ' + prestasi.surat, canvas.width / 2, yPos + 180);
+            
+            // Checkmark
+            ctx.font = 'bold 40px Arial';
+            ctx.fillText('✅', canvas.width / 2, yPos + 230);
+            
+            yPos += itemHeight + itemSpacing;
+        }
+        
+        // Footer
+        yPos += 30;
+        ctx.font = 'bold 36px Arial';
+        ctx.fillStyle = '#059669';
+        ctx.textAlign = 'center';
+        ctx.fillText('MIS Hidayatul Mubtadiin', canvas.width / 2, yPos);
+        yPos += 50;
+        
+        ctx.font = '32px Arial';
+        ctx.fillStyle = '#10B981';
+        ctx.fillText('Undaan Kidul Kudus', canvas.width / 2, yPos);
+        
+        // Convert to blob
+        canvas.toBlob((blob) => {
+            resolve(blob);
+        }, 'image/png');
+    });
+}
+
+async function downloadFlyerByDate(dateId) {
+    console.log('=== downloadFlyerByDate called ===');
+    console.log('dateId:', dateId);
+    
+    const element = document.getElementById(dateId);
+    if (!element) {
+        console.error('Element tidak ditemukan:', dateId);
+        showToast('Data tidak ditemukan', 'error');
+        return;
+    }
+    
+    const tanggal = element.getAttribute('data-tanggal');
+    console.log('Tanggal:', tanggal);
+    
+    // Ambil semua prestasi di tanggal ini dengan cara yang lebih robust
+    const prestasiList = [];
+    
+    // Cari semua div dengan background DCFCE7 (prestasi box)
+    const allDivs = element.getElementsByTagName('div');
+    console.log('Total divs ditemukan:', allDivs.length);
+    
+    for (let i = 0; i < allDivs.length; i++) {
+        const div = allDivs[i];
+        const style = div.getAttribute('style') || '';
+        
+        // Cek apakah ini div prestasi (dengan background DCFCE7)
+        if (style.includes('DCFCE7') && style.includes('border:2px dashed')) {
+            // Ambil semua paragraf dalam div ini
+            const paragraphs = div.getElementsByTagName('p');
+            let nama = '';
+            let surat = '';
+            
+            for (let j = 0; j < paragraphs.length; j++) {
+                const p = paragraphs[j];
+                const text = p.textContent || p.innerText;
+                
+                // Cari nama (yang mengandung "Selamat Ananda")
+                if (text.includes('Selamat Ananda')) {
+                    nama = text.replace('Selamat Ananda', '').replace('!', '').trim();
+                    console.log('Nama ditemukan:', nama);
+                }
+                
+                // Cari surat (yang mengandung "menyelesaikan hafalan")
+                if (text.includes('menyelesaikan hafalan')) {
+                    const match = text.match(/Surah\s+([A-Za-z\-']+)/);
+                    if (match) {
+                        surat = match[1].trim();
+                        console.log('Surat ditemukan:', surat);
+                    }
+                }
+            }
+            
+            if (nama && surat) {
+                console.log('✓ Prestasi valid:', nama, '-', surat);
+                prestasiList.push({ siswa: nama, surat: surat });
+            } else {
+                console.log('✗ Prestasi tidak lengkap - nama:', nama, 'surat:', surat);
+            }
+        }
+    }
+    
+    console.log('Total prestasi ditemukan:', prestasiList.length);
+    console.log('Data prestasi:', JSON.stringify(prestasiList));
+    
+    if (prestasiList.length === 0) {
+        showToast('Tidak ada prestasi untuk didownload', 'error');
+        return;
+    }
+    
+    let tanggalFormatted = tanggal;
+    try { 
+        tanggalFormatted = formatTanggal(tanggal); 
+        console.log('Tanggal formatted:', tanggalFormatted);
+    } catch(e) {
+        console.error('Error format tanggal:', e);
+    }
+    
+    console.log('Mulai membuat flyer...');
+    showLoading(true, 'Membuat flyer...');
+    
+    try {
+        const blob = await createMultiFlyerImage(prestasiList, tanggalFormatted);
+        
+        if (!blob) {
+            throw new Error('Gagal membuat gambar');
+        }
+        
+        console.log('Blob berhasil dibuat, ukuran:', blob.size);
+        
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'Prestasi_' + tanggal.replace(/\//g, '-') + '.png';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        
+        console.log('Download berhasil!');
+        showToast('Flyer berhasil didownload! 📥', 'success');
+    } catch (err) {
+        console.error('Error download:', err);
+        console.error('Stack trace:', err.stack);
+        showToast('Gagal membuat flyer: ' + err.message, 'error');
+    }
+    
+    showLoading(false);
+}
+
+async function shareToWhatsAppByDate(dateId) {
+    console.log('=== shareToWhatsAppByDate called ===');
+    console.log('dateId:', dateId);
+    
+    const element = document.getElementById(dateId);
+    if (!element) {
+        console.error('Element tidak ditemukan:', dateId);
+        showToast('Data tidak ditemukan', 'error');
+        return;
+    }
+    
+    const tanggal = element.getAttribute('data-tanggal');
+    console.log('Tanggal:', tanggal);
+    
+    // Ambil semua prestasi di tanggal ini dengan cara yang lebih robust
+    const prestasiList = [];
+    
+    // Cari semua div dengan background DCFCE7 (prestasi box)
+    const allDivs = element.getElementsByTagName('div');
+    console.log('Total divs ditemukan:', allDivs.length);
+    
+    for (let i = 0; i < allDivs.length; i++) {
+        const div = allDivs[i];
+        const style = div.getAttribute('style') || '';
+        
+        // Cek apakah ini div prestasi (dengan background DCFCE7)
+        if (style.includes('DCFCE7') && style.includes('border:2px dashed')) {
+            // Ambil semua paragraf dalam div ini
+            const paragraphs = div.getElementsByTagName('p');
+            let nama = '';
+            let surat = '';
+            
+            for (let j = 0; j < paragraphs.length; j++) {
+                const p = paragraphs[j];
+                const text = p.textContent || p.innerText;
+                
+                // Cari nama (yang mengandung "Selamat Ananda")
+                if (text.includes('Selamat Ananda')) {
+                    nama = text.replace('Selamat Ananda', '').replace('!', '').trim();
+                    console.log('Nama ditemukan:', nama);
+                }
+                
+                // Cari surat (yang mengandung "menyelesaikan hafalan")
+                if (text.includes('menyelesaikan hafalan')) {
+                    const match = text.match(/Surah\s+([A-Za-z\-']+)/);
+                    if (match) {
+                        surat = match[1].trim();
+                        console.log('Surat ditemukan:', surat);
+                    }
+                }
+            }
+            
+            if (nama && surat) {
+                console.log('✓ Prestasi valid:', nama, '-', surat);
+                prestasiList.push({ siswa: nama, surat: surat });
+            } else {
+                console.log('✗ Prestasi tidak lengkap - nama:', nama, 'surat:', surat);
+            }
+        }
+    }
+    
+    console.log('Total prestasi ditemukan:', prestasiList.length);
+    console.log('Data prestasi:', JSON.stringify(prestasiList));
+    
+    if (prestasiList.length === 0) {
+        showToast('Tidak ada prestasi untuk dishare', 'error');
+        return;
+    }
+    
+    let tanggalFormatted = tanggal;
+    try { 
+        tanggalFormatted = formatTanggal(tanggal); 
+        console.log('Tanggal formatted:', tanggalFormatted);
+    } catch(e) {
+        console.error('Error format tanggal:', e);
+    }
+    
+    console.log('Mulai membuat flyer untuk share...');
+    showLoading(true, 'Menyiapkan flyer...');
+    
+    try {
+        const blob = await createMultiFlyerImage(prestasiList, tanggalFormatted);
+        
+        if (!blob) {
+            throw new Error('Gagal membuat gambar');
+        }
+        
+        console.log('Blob berhasil dibuat, ukuran:', blob.size);
+        
+        // Buat pesan WA
+        let message = 'Alhamdulillah! 🎉\n\n';
+        message += '📅 ' + tanggalFormatted + '\n\n';
+        message += '🏆 PRESTASI HAFALAN:\n';
+        prestasiList.forEach((p, i) => {
+            message += (i + 1) + '. ' + p.siswa + ' - QS. ' + p.surat + '\n';
+        });
+        message += '\nMIS Hidayatul Mubtadiin - Undaan Kidul Kudus';
+        
+        console.log('Pesan WA:', message);
+        
+        // Cek apakah browser support Web Share API dengan file
+        if (navigator.canShare && navigator.canShare({ files: [new File([blob], 'flyer.png')] })) {
+            console.log('Menggunakan Web Share API');
+            const file = new File([blob], 'Prestasi_' + tanggal.replace(/\//g, '-') + '.png', { type: 'image/png' });
+            
+            await navigator.share({
+                title: 'Prestasi Hafalan',
+                text: message,
+                files: [file]
+            });
+            
+            console.log('Share berhasil!');
+            showToast('Berhasil share! 🎉', 'success');
+        } else {
+            console.log('Menggunakan fallback (download + open WA)');
+            // Fallback: Download dulu, lalu buka WA
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'Prestasi_' + tanggal.replace(/\//g, '-') + '.png';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            // Buka WhatsApp dengan pesan
+            const messageEncoded = encodeURIComponent(message);
+            window.open('https://wa.me/?text=' + messageEncoded, '_blank');
+            
+            console.log('Fallback berhasil!');
+            showToast('Flyer didownload! Silakan attach ke WhatsApp 📎', 'success');
+        }
+    } catch (err) {
+        console.error('Error share:', err);
+        console.error('Stack trace:', err.stack);
+        showToast('Gagal share flyer: ' + err.message, 'error');
+    }
+    
+    showLoading(false);
+}
+// Fungsi lama untuk backward compatibility (jika masih ada yang pakai)
 
 // ============================================
 // FLYER GENERATOR & SHARE FUNCTIONS
