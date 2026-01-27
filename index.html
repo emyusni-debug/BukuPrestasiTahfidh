@@ -2119,31 +2119,48 @@ function createMultiFlyerImage(prestasiList, tanggalFormatted) {
             const prestasi = prestasiList[i];
             const medal = medals[i % medals.length];
             
-            // Box untuk setiap prestasi
+            // Box untuk setiap prestasi - tinggi diperbesar untuk menampung teks lebih banyak
             ctx.fillStyle = '#F0FDF4';
             ctx.strokeStyle = '#22C55E';
             ctx.lineWidth = 4;
             drawRoundRect(ctx, 120, yPos, canvas.width - 240, itemHeight - 20, 20, true);
             drawRoundRect(ctx, 120, yPos, canvas.width - 240, itemHeight - 20, 20, false);
             
+            let itemYPos = yPos + 50;
+            
             // Medal
-            ctx.font = 'bold 60px Arial';
+            ctx.font = 'bold 50px Arial';
             ctx.textAlign = 'center';
-            ctx.fillText(medal, canvas.width / 2, yPos + 70);
+            ctx.fillText(medal, canvas.width / 2, itemYPos);
+            itemYPos += 60;
+            
+            // Teks "Selamat untuk ananda :"
+            ctx.font = '32px Arial';
+            ctx.fillStyle = '#166534';
+            ctx.fillText('Selamat untuk ananda :', canvas.width / 2, itemYPos);
+            itemYPos += 50;
             
             // Nama siswa
-            ctx.font = 'bold 42px Arial';
+            ctx.font = 'bold 44px Arial';
+            ctx.fillStyle = '#059669';
+            ctx.fillText(prestasi.siswa, canvas.width / 2, itemYPos);
+            itemYPos += 50;
+            
+            // Teks "telah menyelesaikan hafalan"
+            ctx.font = '30px Arial';
             ctx.fillStyle = '#166534';
-            ctx.fillText(prestasi.siswa, canvas.width / 2, yPos + 130);
+            ctx.fillText('telah menyelesaikan hafalan', canvas.width / 2, itemYPos);
+            itemYPos += 45;
             
             // Surat
-            ctx.font = '36px Arial';
+            ctx.font = 'bold 38px Arial';
             ctx.fillStyle = '#15803D';
-            ctx.fillText('Surah ' + prestasi.surat, canvas.width / 2, yPos + 180);
+            ctx.fillText('Surah ' + prestasi.surat, canvas.width / 2, itemYPos);
+            itemYPos += 50;
             
             // Checkmark
-            ctx.font = 'bold 40px Arial';
-            ctx.fillText('✅', canvas.width / 2, yPos + 230);
+            ctx.font = 'bold 35px Arial';
+            ctx.fillText('✅', canvas.width / 2, itemYPos);
             
             yPos += itemHeight + itemSpacing;
         }
@@ -2468,20 +2485,20 @@ function createFlyerImage(nama, surat, tanggal) {
         ctx.font = '75px Arial';
         ctx.fillText('🎉', 540, 580);
         
-        // Selamat text
+        // Teks "Selamat untuk ananda :"
         ctx.fillStyle = '#1F2937';
-        ctx.font = 'bold 50px Arial';
-        ctx.fillText('Selamat kepada', 540, 680);
+        ctx.font = 'bold 48px Arial';
+        ctx.fillText('Selamat untuk ananda :', 540, 680);
         
         // Nama siswa dengan font cursive/script yang menarik
         ctx.fillStyle = '#059669';
-        ctx.font = 'bold italic 55px Bradley Hand';
+        ctx.font = 'bold italic 60px Bradley Hand';
         
         // Word wrap untuk nama panjang
         const maxWidth = 800;
         const words = nama.split(' ');
         let line = '';
-        let y = 770;
+        let y = 780;
         const lineHeight = 85;
         
         for (let i = 0; i < words.length; i++) {
@@ -2498,10 +2515,10 @@ function createFlyerImage(nama, surat, tanggal) {
         }
         ctx.fillText(line.trim(), 540, y);
         
-        // Achievement text
+        // Teks "telah menyelesaikan hafalan"
         ctx.fillStyle = '#1F2937';
         ctx.font = '42px Arial';
-        ctx.fillText('Telah menyelesaikan hafalan', 540, y + 110);
+        ctx.fillText('telah menyelesaikan hafalan', 540, y + 110);
         
         // Surah name
         ctx.fillStyle = '#DC2626';
