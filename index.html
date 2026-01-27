@@ -2365,25 +2365,13 @@ async function shareToWhatsAppByDate(dateId) {
         
         console.log('Blob berhasil dibuat, ukuran:', blob.size);
         
-        // Buat pesan WA
-        let message = 'Alhamdulillah! 🎉\n\n';
-        message += '📅 ' + tanggalFormatted + '\n\n';
-        message += '🏆 PRESTASI HAFALAN:\n';
-        prestasiList.forEach((p, i) => {
-            message += (i + 1) + '. ' + p.siswa + ' - QS. ' + p.surat + '\n';
-        });
-        message += '\nMIS Hidayatul Mubtadiin - Undaan Kidul Kudus';
-        
-        console.log('Pesan WA:', message);
-        
         // Cek apakah browser support Web Share API dengan file
         if (navigator.canShare && navigator.canShare({ files: [new File([blob], 'flyer.png')] })) {
             console.log('Menggunakan Web Share API');
             const file = new File([blob], 'Prestasi_' + tanggal.replace(/\//g, '-') + '.png', { type: 'image/png' });
             
+            // HANYA SHARE GAMBAR, TANPA TEKS
             await navigator.share({
-                title: 'Prestasi Hafalan',
-                text: message,
                 files: [file]
             });
             
@@ -2391,7 +2379,7 @@ async function shareToWhatsAppByDate(dateId) {
             showToast('Berhasil share! 🎉', 'success');
         } else {
             console.log('Menggunakan fallback (download + open WA)');
-            // Fallback: Download dulu, lalu buka WA
+            // Fallback: Download dulu, kemudian user bisa attach manual ke WA
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
@@ -2401,11 +2389,8 @@ async function shareToWhatsAppByDate(dateId) {
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
             
-            // Buka WhatsApp dengan pesan
-            const messageEncoded = encodeURIComponent(message);
-            window.open('https://wa.me/?text=' + messageEncoded, '_blank');
-            
-            console.log('Fallback berhasil!');
+            // TIDAK BUKA WA DENGAN TEKS - biarkan user attach gambar sendiri
+            console.log('Fallback: File didownload, user bisa attach ke WA');
             showToast('Flyer didownload! Silakan attach ke WhatsApp 📎', 'success');
         }
     } catch (err) {
@@ -2627,15 +2612,14 @@ async function shareToWhatsApp(nama, surat, tanggal) {
         if (navigator.canShare && navigator.canShare({ files: [new File([blob], 'flyer.png')] })) {
             const file = new File([blob], 'Prestasi_' + nama.replace(/\s+/g, '_') + '.png', { type: 'image/png' });
             
+            // HANYA SHARE GAMBAR, TANPA TEKS
             await navigator.share({
-                title: 'Prestasi Hafalan',
-                text: 'Alhamdulillah, ' + nama + ' telah menyelesaikan hafalan QS. ' + surat + '! 🎉📖\n\nMIS Hidayatul Mubtadiin - Undaan Kidul Kudus',
                 files: [file]
             });
             
             showToast('Berhasil share! 🎉', 'success');
         } else {
-            // Fallback: Download dulu, lalu buka WA
+            // Fallback: Download dulu, user bisa attach manual ke WA
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
@@ -2645,10 +2629,7 @@ async function shareToWhatsApp(nama, surat, tanggal) {
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
             
-            // Buka WhatsApp dengan pesan
-            const message = encodeURIComponent('Alhamdulillah, ' + nama + ' telah menyelesaikan hafalan QS. ' + surat + '! 🎉📖\n\nMIS Hidayatul Mubtadiin - Undaan Kidul Kudus');
-            window.open('https://wa.me/?text=' + message, '_blank');
-            
+            // TIDAK BUKA WA DENGAN TEKS - biarkan user attach gambar sendiri
             showToast('Flyer didownload! Silakan attach ke WhatsApp 📎', 'success');
         }
     } catch (err) {
