@@ -455,7 +455,6 @@
                     "Rijal Fadlurrohman Aldzaki", "Sumayya Sirril Chubba", "Zidan Nafi' Ilmi"
                 ],
                 surat: [
-					{ nomor: 36, nama: "Yasin", ayat: 83 }, { nomor: 56, nama: "Al-Waqi'ah", ayat: 96 }, { nomor: 67, nama: "Al-Mulk", ayat: 30 },
 					{ nomor: 78, nama: "An-Naba'", ayat: 40 }, { nomor: 79, nama: "An-Nazi'at", ayat: 46 },
                     { nomor: 80, nama: "'Abasa", ayat: 42 }, { nomor: 81, nama: "At-Takwir", ayat: 29 },
                     { nomor: 82, nama: "Al-Infithar", ayat: 19 }, { nomor: 83, nama: "Al-Muthaffifin", ayat: 36 },
@@ -2057,125 +2056,165 @@ function createMultiFlyerImage(prestasiList, tanggalFormatted) {
         const ctx = canvas.getContext('2d');
         
         // Hitung tinggi canvas berdasarkan jumlah prestasi
-        const headerHeight = 350;
-        const footerHeight = 150;
-        const itemHeight = 280; // Tinggi per prestasi
-        const itemSpacing = 30; // Jarak antar prestasi
+        const headerHeight = 280;  // Header dengan tanggal + "Selamat kepada Ananda"
+        const itemHeight = 200;     // Tinggi per prestasi (diperbesar lagi agar nama surat tidak terpotong)
+        const itemSpacing = 20;     // Jarak antar prestasi
+        const doaHeight = 320;      // Tinggi section doa
+        const footerHeight = 100;   // Footer sekolah
+        
         const totalItemsHeight = (prestasiList.length * itemHeight) + ((prestasiList.length - 1) * itemSpacing);
         
         // Set ukuran canvas
         canvas.width = 1080;
-        canvas.height = headerHeight + totalItemsHeight + footerHeight + 100;
+        canvas.height = headerHeight + totalItemsHeight + doaHeight + footerHeight + 120;
         
-        // Background gradient
+        // Background gradient - warna orange/kuning seperti gambar
         const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
-        gradient.addColorStop(0, '#10B981');
-        gradient.addColorStop(1, '#059669');
+        gradient.addColorStop(0, '#F59E0B');
+        gradient.addColorStop(1, '#D97706');
         ctx.fillStyle = gradient;
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         
-        // Decorative circles
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
-        ctx.beginPath();
-        ctx.arc(150, 100, 180, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.beginPath();
-        ctx.arc(930, canvas.height - 150, 200, 0, Math.PI * 2);
-        ctx.fill();
+        // Border luar dengan rounded corners
+        ctx.fillStyle = '#FEF3C7';
+        drawRoundRect(ctx, 40, 40, canvas.width - 80, canvas.height - 80, 30, true);
         
-        // White card background
+        let yPos = 80;
+        
+        // ===== HEADER: TANGGAL + "Selamat kepada Ananda :" =====
+        // Box header dengan warna orange
+        ctx.fillStyle = '#F59E0B';
+        drawRoundRect(ctx, 80, yPos, canvas.width - 160, 180, 20, true);
+        
+        // Icon Trophy di kiri
+        ctx.font = '60px Arial';
         ctx.fillStyle = '#FFFFFF';
-        ctx.shadowColor = 'rgba(0, 0, 0, 0.2)';
-        ctx.shadowBlur = 30;
-        ctx.shadowOffsetY = 10;
-        drawRoundRect(ctx, 60, 60, canvas.width - 120, canvas.height - 120, 30, true);
-        ctx.shadowBlur = 0;
-        ctx.shadowOffsetY = 0;
+        ctx.textAlign = 'left';
+        ctx.fillText('🏆', 140, yPos + 70);
         
-        let yPos = 120;
-        
-        // Header - Emoji Trophy
-        ctx.font = 'bold 140px Arial';
+        // Tanggal (di tengah, agak ke kanan dari trophy)
+        ctx.font = 'bold 52px Arial';
+        ctx.fillStyle = '#FFFFFF';
         ctx.textAlign = 'center';
-        ctx.fillText('🏆', canvas.width / 2, yPos);
-        yPos += 100;
+        ctx.fillText(tanggalFormatted, canvas.width / 2 + 30, yPos + 70);
         
-        // Title
-        ctx.font = 'bold 56px Arial';
-        ctx.fillStyle = '#059669';
-        ctx.fillText('PRESTASI HAFALAN', canvas.width / 2, yPos);
-        yPos += 70;
+        // "Selamat kepada Ananda :"
+        ctx.font = '42px Arial';
+        ctx.fillStyle = '#FFFFFF';
+        ctx.fillText('Selamat kepada Ananda :', canvas.width / 2, yPos + 140);
         
-        // Tanggal
-        ctx.font = 'bold 38px Arial';
-        ctx.fillStyle = '#10B981';
-        ctx.fillText(tanggalFormatted, canvas.width / 2, yPos);
-        yPos += 80;
+        yPos += 220;
         
-        // Daftar Prestasi
-        const medals = ['🥇', '🥈', '🥉', '🏅', '⭐', '🌟'];
-        
+        // ===== DAFTAR PRESTASI =====
         for (let i = 0; i < prestasiList.length; i++) {
             const prestasi = prestasiList[i];
-            const medal = medals[i % medals.length];
             
-            // Box untuk setiap prestasi - tinggi diperbesar untuk menampung teks lebih banyak
-            ctx.fillStyle = '#F0FDF4';
-            ctx.strokeStyle = '#22C55E';
-            ctx.lineWidth = 4;
-            drawRoundRect(ctx, 120, yPos, canvas.width - 240, itemHeight - 20, 20, true);
-            drawRoundRect(ctx, 120, yPos, canvas.width - 240, itemHeight - 20, 20, false);
+            // Box prestasi hijau dengan border dashed - tinggi disesuaikan
+            const boxHeight = itemHeight - 0; // 180px
+            ctx.fillStyle = '#D1FAE5';
+            ctx.strokeStyle = '#10B981';
+            ctx.lineWidth = 3;
+            ctx.setLineDash([10, 5]); // Dashed line
+            drawRoundRect(ctx, 100, yPos, canvas.width - 200, boxHeight, 15, true);
+            drawRoundRect(ctx, 100, yPos, canvas.width - 200, boxHeight, 15, false);
+            ctx.setLineDash([]); // Reset to solid
             
-            let itemYPos = yPos + 50;
+            let itemYPos = yPos + 25; // Padding top lebih besar
             
-            // Medal
-            ctx.font = 'bold 50px Arial';
+            // Nama siswa dengan font script/cursive - dengan word wrap
+            ctx.font = 'italic bold 46px Georgia';
+            ctx.fillStyle = '#065F46';
             ctx.textAlign = 'center';
-            ctx.fillText(medal, canvas.width / 2, itemYPos);
-            itemYPos += 60;
             
-            // Teks "Selamat untuk ananda :"
-            ctx.font = '32px Arial';
-            ctx.fillStyle = '#166534';
-            ctx.fillText('Selamat untuk ananda :', canvas.width / 2, itemYPos);
-            itemYPos += 50;
+            // Word wrap untuk nama panjang
+            const maxWidth = canvas.width - 280; // Lebar maksimal untuk teks
+            const namaWords = prestasi.siswa.split(' ');
+            let namaLine = '';
+            let namaLines = [];
             
-            // Nama siswa
-            ctx.font = 'bold 44px Arial';
-            ctx.fillStyle = '#059669';
-            ctx.fillText(prestasi.siswa, canvas.width / 2, itemYPos);
-            itemYPos += 50;
+            for (let j = 0; j < namaWords.length; j++) {
+                const testLine = namaLine + namaWords[j] + ' ';
+                const metrics = ctx.measureText(testLine);
+                
+                if (metrics.width > maxWidth && j > 0) {
+                    namaLines.push(namaLine.trim());
+                    namaLine = namaWords[j] + ' ';
+                } else {
+                    namaLine = testLine;
+                }
+            }
+            namaLines.push(namaLine.trim());
             
-            // Teks "telah menyelesaikan hafalan"
+            // Render nama (bisa multi-line)
+            const namaLineHeight = 50;
+            for (let j = 0; j < namaLines.length; j++) {
+                ctx.fillText(namaLines[j], canvas.width / 2, itemYPos + 40 + (j * namaLineHeight));
+            }
+            
+            itemYPos += 35 + (namaLines.length * namaLineHeight);
+            
+            // "yang telah menyelesaikan hafalan"
             ctx.font = '30px Arial';
-            ctx.fillStyle = '#166534';
-            ctx.fillText('telah menyelesaikan hafalan', canvas.width / 2, itemYPos);
+            ctx.fillStyle = '#047857';
+            ctx.fillText('yang telah menyelesaikan hafalan', canvas.width / 2, itemYPos + 10);
             itemYPos += 45;
             
-            // Surat
+            // Nama Surat - bold dan lebih besar, dengan word wrap jika perlu
             ctx.font = 'bold 38px Arial';
-            ctx.fillStyle = '#15803D';
-            ctx.fillText('Surah ' + prestasi.surat, canvas.width / 2, itemYPos);
-            itemYPos += 50;
+            ctx.fillStyle = '#065F46';
             
-            // Checkmark
-            ctx.font = 'bold 35px Arial';
-            ctx.fillText('✅', canvas.width / 2, itemYPos);
+            const suratText = 'Surah ' + prestasi.surat;
+            const suratMetrics = ctx.measureText(suratText);
+            
+            // Jika teks surat terlalu panjang, gunakan font lebih kecil
+            if (suratMetrics.width > maxWidth) {
+                ctx.font = 'bold 34px Arial';
+            }
+            
+            ctx.fillText(suratText, canvas.width / 2, itemYPos + 20);
             
             yPos += itemHeight + itemSpacing;
         }
         
-        // Footer
-        yPos += 30;
-        ctx.font = 'bold 36px Arial';
-        ctx.fillStyle = '#059669';
+        // ===== SECTION DOA =====
+        yPos += 20;
+        
+        // Box doa dengan background hijau muda
+        ctx.fillStyle = '#D1FAE5';
+        ctx.strokeStyle = '#10B981';
+        ctx.lineWidth = 3;
+        ctx.setLineDash([10, 5]);
+        drawRoundRect(ctx, 100, yPos, canvas.width - 200, doaHeight - 20, 15, true);
+        drawRoundRect(ctx, 100, yPos, canvas.width - 200, doaHeight - 20, 15, false);
+        ctx.setLineDash([]);
+        
+        // Background dalam untuk doa
+        ctx.fillStyle = '#ECFDF5';
+        drawRoundRect(ctx, 120, yPos + 15, canvas.width - 240, 160, 15, true);
+        
+        // Teks doa
+        ctx.font = 'italic 34px Arial';
+        ctx.fillStyle = '#047857';
         ctx.textAlign = 'center';
-        ctx.fillText('MIS Hidayatul Mubtadiin', canvas.width / 2, yPos);
-        yPos += 50;
+        ctx.fillText('"Teruslah semangat menghafal!', canvas.width / 2, yPos + 80);
+        ctx.fillText('Semoga Allah menjadikanmu ahli Al-Quran.', canvas.width / 2, yPos + 125);
+
+        
+        // Aamiin dengan emoji
+        ctx.font = 'bold 38px Arial';
+        ctx.fillStyle = '#065F46';
+        ctx.fillText('📚 ✨ Aamiin Yaa Rabbal Aalamiin ✨ 📚', canvas.width / 2, yPos + 250);
+        
+        yPos += doaHeight + 20;
+        
+        // ===== FOOTER: NAMA SEKOLAH =====
+        ctx.font = 'bold 36px Arial';
+        ctx.fillStyle = '#047857';
+        ctx.fillText('MIS Hidayatul Mubtadiin', canvas.width / 2, yPos + 30);
         
         ctx.font = '32px Arial';
-        ctx.fillStyle = '#10B981';
-        ctx.fillText('Undaan Kidul Kudus', canvas.width / 2, yPos);
+        ctx.fillStyle = '#059669';
+        ctx.fillText('Undaan Kidul Kudus', canvas.width / 2, yPos + 75);
         
         // Convert to blob
         canvas.toBlob((blob) => {
