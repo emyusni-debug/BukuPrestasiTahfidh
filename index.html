@@ -400,6 +400,7 @@
                 <div class="history-header">
                     <div class="card-title" style="margin-bottom:0;"><i class="fas fa-history"></i> Riwayat Setoran</div>
                     <div class="history-actions">
+                        <button class="btn-share btn-whatsapp teacher-only" style="padding:8px 14px;font-size:0.8rem;border-radius:8px;" onclick="shareRiwayatToWA()"><i class="fab fa-whatsapp"></i> Share Riwayat</button>
                         <button class="icon-btn refresh" id="btnRefresh" onclick="loadRiwayat()"><i class="fas fa-sync-alt"></i></button>
                         <button class="icon-btn delete-all teacher-only" onclick="hapusSemuaData()"><i class="fas fa-trash-alt"></i></button>
                     </div>
@@ -455,7 +456,6 @@
                     "Rijal Fadlurrohman Aldzaki", "Sumayya Sirril Chubba", "Zidan Nafi' Ilmi"
                 ],
                 surat: [
-					{ nomor: 36, nama: "Yasin", ayat: 83 }, { nomor: 56, nama: "Al-Waqi'ah", ayat: 96 }, { nomor: 67, nama: "Al-Mulk", ayat: 30 },
 					{ nomor: 78, nama: "An-Naba'", ayat: 40 }, { nomor: 79, nama: "An-Nazi'at", ayat: 46 },
                     { nomor: 80, nama: "'Abasa", ayat: 42 }, { nomor: 81, nama: "At-Takwir", ayat: 29 },
                     { nomor: 82, nama: "Al-Infithar", ayat: 19 }, { nomor: 83, nama: "Al-Muthaffifin", ayat: 36 },
@@ -1676,6 +1676,70 @@ function shareAbsenToWA(tanggal, siswaTidakSetor) {
     window.open(waUrl, '_blank');
     
     showToast('Pesan disiapkan! Pilih group kelas di WhatsApp 📱', 'success');
+}
+
+// ============================================
+// SHARE RIWAYAT SETORAN TERAKHIR KE WHATSAPP
+// ============================================
+function shareRiwayatToWA() {
+    if (!riwayatData || riwayatData.length === 0) {
+        showToast('Belum ada data setoran', 'error');
+        return;
+    }
+
+    // Ambil setoran terakhir per siswa
+    const setoranTerakhir = {};
+    riwayatData.forEach(item => {
+        const siswa = item.siswa;
+        if (!setoranTerakhir[siswa]) {
+            setoranTerakhir[siswa] = item;
+        } else {
+            // Bandingkan tanggal, ambil yang terbaru
+            const tglBaru = item.tanggal.split('/').reverse().join('-');
+            const tglLama = setoranTerakhir[siswa].tanggal.split('/').reverse().join('-');
+            if (new Date(tglBaru) >= new Date(tglLama)) {
+                setoranTerakhir[siswa] = item;
+            }
+        }
+    });
+
+    // Ambil tanggal terbaru dari seluruh data
+    const dates = riwayatData.map(i => i.tanggal);
+    const latestDate = dates.sort((a, b) => {
+        return new Date(b.split('/').reverse().join('-')) - new Date(a.split('/').reverse().join('-'));
+    })[0];
+    let tglFormatted = latestDate;
+    try { tglFormatted = formatTanggal(latestDate); } catch(e) {}
+
+    // Susun pesan
+    let message = '*📖 REKAP SETORAN TAHFIDZ TERAKHIR*\n';
+    message += `Kelas ${currentKelas} - MIS Hidayatul Mubtadiin\n`;
+    message += `Data s.d. ${tglFormatted}\n\n`;
+
+    // Urutkan nama siswa alfabetis
+    const siswaList = currentConfig.siswa;
+    let noUrut = 1;
+    siswaList.forEach(nama => {
+        const s = setoranTerakhir[nama];
+        if (s) {
+            const tgl = (() => { try { return formatTanggal(s.tanggal); } catch(e) { return s.tanggal; } })();
+            const predikatIcon = { 'Istimewa': '⭐', 'Bagus': '✅', 'Cukup': '👍', 'Mengulang': '🔁' }[s.predikat] || '•';
+            message += `${noUrut}. *${nama}*\n`;
+            message += `   📚 QS. ${s.surat}: ${s.ayatDari}-${s.ayatSampai}\n`;
+            message += `   ${predikatIcon} ${s.predikat} | 📅 ${tgl}\n\n`;
+        } else {
+            message += `${noUrut}. *${nama}*\n`;
+            message += `   ❌ Belum ada setoran\n\n`;
+        }
+        noUrut++;
+    });
+
+    message += '📚 *Semangat Menghafal Al-Qur\'an!* 🌟';
+
+    const encodedMessage = encodeURIComponent(message);
+    const waUrl = `https://wa.me/?text=${encodedMessage}`;
+    window.open(waUrl, '_blank');
+    showToast('Pesan disiapkan! Pilih kontak di WhatsApp 📱', 'success');
 }
 
 // Helper function untuk icon alasan
