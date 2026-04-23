@@ -463,7 +463,7 @@
                     { nomor: 86, nama: "At-Thariq", ayat: 17 }, { nomor: 87, nama: "Al-A'la", ayat: 19 },
                     { nomor: 88, nama: "Al-Ghasyiyah", ayat: 26 }, { nomor: 89, nama: "Al-Fajr", ayat: 30 },
                     { nomor: 90, nama: "Al-Balad", ayat: 20 }, { nomor: 91, nama: "Asy-Syams", ayat: 15 },
-                    { nomor: 92, nama: "Al-Lail", ayat: 21 }
+                    { nomor: 92, nama: "Al-Lail", ayat: 21 }, { nomor: 36, nama: "Yasin", ayat: 83 }, { nomor: 56, nama: "Al-Waqi'ah", ayat: 96 }, { nomor: 67, nama: "Al-Mulk", ayat: 30 }, { nomor: 02, nama: "Al-Baqarah", ayat: 283 }
                 ]
             },
             '4B': {
@@ -515,8 +515,7 @@
                     { nomor: 80, nama: "'Abasa", ayat: 42 }, { nomor: 81, nama: "At-Takwir", ayat: 29 },
                     { nomor: 82, nama: "Al-Infithar", ayat: 19 }, { nomor: 83, nama: "Al-Muthaffifin", ayat: 36 },
                     { nomor: 84, nama: "Al-Insyiqaq", ayat: 25 }, { nomor: 85, nama: "Al-Buruj", ayat: 22 },
-                    { nomor: 86, nama: "At-Thariq", ayat: 17 }, { nomor: 36, nama: "Yasin", ayat: 83 }, { nomor: 56, nama: "Al-Waqi'ah", ayat: 96 }, { nomor: 67, nama: "Al-Mulk", ayat: 30 },
-					{ nomor: 02, nama: "Al-Baqarah", ayat: 283 }
+                    { nomor: 86, nama: "At-Thariq", ayat: 17 }, { nomor: 36, nama: "Yasin", ayat: 83 }, { nomor: 56, nama: "Al-Waqi'ah", ayat: 96 }, { nomor: 67, nama: "Al-Mulk", ayat: 30 }, { nomor: 02, nama: "Al-Baqarah", ayat: 283 }
                 ]
             },
             '5B': {
@@ -1687,22 +1686,6 @@ function shareRiwayatToWA() {
         return;
     }
 
-    // Ambil setoran terakhir per siswa
-    const setoranTerakhir = {};
-    riwayatData.forEach(item => {
-        const siswa = item.siswa;
-        if (!setoranTerakhir[siswa]) {
-            setoranTerakhir[siswa] = item;
-        } else {
-            // Bandingkan tanggal, ambil yang terbaru
-            const tglBaru = item.tanggal.split('/').reverse().join('-');
-            const tglLama = setoranTerakhir[siswa].tanggal.split('/').reverse().join('-');
-            if (new Date(tglBaru) >= new Date(tglLama)) {
-                setoranTerakhir[siswa] = item;
-            }
-        }
-    });
-
     // Ambil tanggal terbaru dari seluruh data
     const dates = riwayatData.map(i => i.tanggal);
     const latestDate = dates.sort((a, b) => {
@@ -1711,27 +1694,30 @@ function shareRiwayatToWA() {
     let tglFormatted = latestDate;
     try { tglFormatted = formatTanggal(latestDate); } catch(e) {}
 
-    // Susun pesan
-    let message = '*📖 REKAP SETORAN TAHFIDZ TERAKHIR*\n';
-    message += `Kelas ${currentKelas} - MIS Hidayatul Mubtadiin\n`;
-    message += `Data s.d. ${tglFormatted}\n\n`;
+    // Ambil hanya setoran di tanggal terakhir per siswa
+    const setoranHariIni = {};
+    riwayatData.forEach(item => {
+        if (item.tanggal === latestDate) {
+            setoranHariIni[item.siswa] = item;
+        }
+    });
 
-    // Urutkan nama siswa alfabetis
+    // Susun pesan
+    let message = '*📖 REKAP SETORAN TAHFIDZ*\n';
+    message += `Kelas ${currentKelas} - MIS Hidayatul Mubtadiin\n`;
+    message += `📅 ${tglFormatted}\n\n`;
+
+    // Tampilkan hanya siswa yang setor di tanggal terakhir
     const siswaList = currentConfig.siswa;
     let noUrut = 1;
     siswaList.forEach(nama => {
-        const s = setoranTerakhir[nama];
+        const s = setoranHariIni[nama];
         if (s) {
-            const tgl = (() => { try { return formatTanggal(s.tanggal); } catch(e) { return s.tanggal; } })();
             const predikatIcon = { 'Istimewa': '⭐', 'Bagus': '✅', 'Cukup': '👍', 'Mengulang': '🔁' }[s.predikat] || '•';
             message += `${noUrut}. *${nama}*\n`;
-            message += `   📚 QS. ${s.surat}: ${s.ayatDari}-${s.ayatSampai}\n`;
-            message += `   ${predikatIcon} ${s.predikat} | 📅 ${tgl}\n\n`;
-        } else {
-            message += `${noUrut}. *${nama}*\n`;
-            message += `   ❌ Belum ada setoran\n\n`;
+            message += `   📚 QS. ${s.surat}: ${s.ayatDari}-${s.ayatSampai} | ${predikatIcon} ${s.predikat}\n\n`;
+            noUrut++;
         }
-        noUrut++;
     });
 
     message += '📚 *Semangat Menghafal Al-Qur\'an!* 🌟';
