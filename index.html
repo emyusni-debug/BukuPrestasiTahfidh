@@ -1713,14 +1713,10 @@ function shareRiwayatToWA() {
     siswaList.forEach(nama => {
         const s = setoranHariIni[nama];
         if (s) {
-            const predikatIcon = { 'Istimewa': '⭐', 'Bagus': '✅', 'Cukup': '👍', 'Mengulang': '🔁' }[s.predikat] || '•';
-            message += `${noUrut}. *${nama}*\n`;
-            message += `   📚 QS. ${s.surat}: ${s.ayatDari}-${s.ayatSampai} | ${predikatIcon} ${s.predikat}\n\n`;
+            message += `${noUrut}. *${nama}*\n${s.surat} ${s.ayatDari}-${s.ayatSampai}\n`;
             noUrut++;
         }
     });
-
-    message += '📚 *Semangat Menghafal Al-Qur\'an!* 🌟';
 
     const encodedMessage = encodeURIComponent(message);
     const waUrl = `https://wa.me/?text=${encodedMessage}`;
